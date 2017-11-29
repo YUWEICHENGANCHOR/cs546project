@@ -1,6 +1,7 @@
+/* Move down content because we have a fixed navbar that is 50px tall */
 body {
-  padding: 50px;
-  font: 14px "Lucida Grande", Helvetica, Arial, sans-serif;
+  padding-top: 50px;
+  padding-bottom: 20px;
 }
 
 a {

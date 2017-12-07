@@ -1,33 +1,62 @@
 const mongoCollections=require("../config/mongoCollections");
 const restaurants=mongoCollections.restaurants;
-const uuidv4 = require('uuid/v4');
+const ObjectId = require('mongodb').ObjectId;
+
+//get all restaurants and all reviews
+async function getAll() {
+    const restaurantsCollection=await restaurants();
+    return await restaurantsCollection.find({}).toArray();  
+} 
 
 //get all restaurants
 async function getAllRestaurants(){
     const restaurantsCollection=await restaurants();
+    //return await restaurantsCollection.find({}).toArray();
     const allRestaurants=await restaurantsCollection.find({}).toArray();
     let resultsList=[];
     for(let i=0;i<allRestaurants.length;i++){
         let content={
             _id:allRestaurants[i]._id,
-            cuisine:allRestaurants[i].R_cuisine,
-            name:allRestaurants[i].R_name,
-            href:allRestaurants[i].R_href,
-            location:allRestaurants[i].R_location,
-            reviews:[]
+            R_cuisine:allRestaurants[i].R_cuisine,
+            R_name:allRestaurants[i].R_name,
+            R_href:allRestaurants[i].R_href,
+            R_location:allRestaurants[i].R_location,
+            R_review:[],
         }
         resultsList.push(content);
     }
     return resultsList; 
 }
 
+
 //get the restaurant 
 async function getRestaurantById(id){
+    // if(id===undefined) throw "Please provide an id.";
+    // const theRestaurants=await this.getAllRestaurants();
+    // if(!theRestaurants) throw "can not get theRestaurants."
+    // for(let i=0;i<theRestaurants.length;i++){
+    //     if(theRestaurants[i]._id.toString()===id){
+    //         return theRestaurants[i]; 
+    //     } 
+    // }
     if(id===undefined) throw "Please provide an name.";
     const restaurantsCollection=await restaurants();
-    const theRestaurant=await restaurantsCollection.findOne({_id:id});
+    const theRestaurant=await restaurantsCollection.findOne({_id:ObjectId(id)});
     if(!theRestaurant || theRestaurant===null) throw "No restaurant with that name.";
     return theRestaurant;
+}
+
+//get the restaurant 
+async function getRestaurantByName(name){
+    if(name===undefined) throw "Please provide an id.";
+    //const restaurantsCollection=await restaurants();
+    const theRestaurants=await this.getAllRestaurants();
+    if(!theRestaurants) throw "can not get theRestaurants."
+    for(let i=0;i<theRestaurants.length;i++){
+        if(theRestaurants[i].R_name===name){
+            return theRestaurants[i];   
+        }        
+    }
 }
 
 //add restaurant
@@ -41,7 +70,7 @@ async function addRestaurant(cuisine,name,href,location){
 
     const restaurantsCollection=await restaurants();
     let newRestaurant={
-        _id:uuidv4(),
+        _id:new ObjectId(),
         R_cuisine:cuisine,
         R_name:name,
         R_href:href,
@@ -71,11 +100,12 @@ async function updateRestaurant(id,suppliedChange){
     }
     if(suppliedChange.R_review){
         updatedRestaurant.R_review=suppliedChange.R_review;
-    }
+    } 
     const updatedInfo=await restaurantsCollection.updateOne(
-        {_id:id},
-        {$set:updatedRestaurant}
-    ); 
+        {_id:ObjectId(id)},
+        {$set:updatedRestaurant},
+        {upsert:true}
+    );  
     return await this.getRestaurantById(id);  
 }
 
@@ -83,10 +113,9 @@ async function updateRestaurant(id,suppliedChange){
 async function deleteRestaurant(id){
     if(!id) throw "No id provided.";
     const restaurantsCollection=await restaurants();
-    const deleteInfo=restaurantsCollection.removeOne({_id:id});
+    const deleteInfo=restaurantsCollection.removeOne({_id:ObjectId(id)});
     if(deleteInfo.deleteCount==0) throw "Could not delete restaurant.";
     return "{delete restaurant: true}";
 }
 
-module.exports={getAllRestaurants,getRestaurantById,addRestaurant,updateRestaurant,deleteRestaurant};
-
+module.exports={getAll,getAllRestaurants,getRestaurantById,getRestaurantByName,addRestaurant,updateRestaurant,deleteRestaurant};

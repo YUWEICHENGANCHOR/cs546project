@@ -1,10 +1,24 @@
 const router=require("express").Router();
-const data=require("../data");
-const restaurantsData=data.restaurants;
+const restaurantsData=require("../data/restaurants");
 
+// router.get('/', async function(req, res) {
+//     res.send('restaurants respond!!!');
+// });
+ 
 router.get("/", async (req,res)=>{
     try{
         const getData=await restaurantsData.getAllRestaurants();
+        console.log(getData);
+        res.json(getData);
+    }catch(e){
+        console.log(e);
+        res.status(500).json({error: e});
+    }   
+});
+
+router.get("/all", async (req,res)=>{
+    try{
+        const getData=await restaurantsData.getAll();
         res.json(getData);
     }catch(e){
         res.status(500).json({error: e});
@@ -14,6 +28,16 @@ router.get("/", async (req,res)=>{
 router.get("/:id", async (req,res)=>{
     try{
         const getData=await restaurantsData.getRestaurantById(req.params.id);
+        res.json(getData);
+    }catch(e){
+        console.log(e);
+        res.status(404).json({error:"The restaurant not found."});
+    }
+});
+
+router.get("/:name", async (req,res)=>{
+    try{
+        const getData=await restaurantsData.getRestaurantByName(req.params.name);
         res.json(getData);
     }catch(e){
         console.log(e);
